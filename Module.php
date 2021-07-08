@@ -7,6 +7,7 @@
 
 namespace Aurora\Modules\IPAllowList;
 
+use Aurora\Modules\Core\Models\User;
 use Aurora\System\Exceptions\ApiException;
 
 /**
@@ -54,7 +55,7 @@ class Module extends \Aurora\System\Module\AbstractModule
 		\Aurora\System\Api::checkUserRoleIsAtLeast(\Aurora\System\Enums\UserRole::SuperAdmin);
 
 		$oUser = \Aurora\System\Api::getUserById($UserId);
-		if ($oUser instanceof \Aurora\Modules\Core\Classes\User && $oUser->isNormalOrTenant())
+		if ($oUser instanceof User && $oUser->isNormalOrTenant())
 		{
 			$aList = $this->GetIpAllowlist($oUser);
 			$bIpAllowlistEnabled = (count($aList) > 0);
@@ -72,10 +73,10 @@ class Module extends \Aurora\System\Module\AbstractModule
 
 		$mResult = false;
 		$oUser = \Aurora\System\Api::getUserById($UserId);
-		if ($oUser instanceof \Aurora\Modules\Core\Classes\User && $oUser->isNormalOrTenant())
+		if ($oUser instanceof User && $oUser->isNormalOrTenant())
 		{
-			$oUser->{self::GetName() . '::IPAllowList'} = \json_encode([]);
-			$mResult = $oUser->saveAttribute(self::GetName() . '::IPAllowList');
+			$oUser->setExtendedProp(self::GetName() . '::IPAllowList', \json_encode([]));
+			$mResult = $oUser->save();
 		}
 		return $mResult;
 	}
@@ -91,7 +92,7 @@ class Module extends \Aurora\System\Module\AbstractModule
 			\Aurora\System\Api::checkUserRoleIsAtLeast(\Aurora\System\Enums\UserRole::SuperAdmin);
 		}
 		$aList = [];
-		if ($User instanceof \Aurora\Modules\Core\Classes\User) {
+		if ($User instanceof User) {
 			if (!empty($User->{self::GetName() . '::IPAllowList'})) {
 				$aList = \json_decode($User->{self::GetName() . '::IPAllowList'}, true);
 			}
@@ -106,11 +107,11 @@ class Module extends \Aurora\System\Module\AbstractModule
 
 		$mResult = false;
 		$oUser = \Aurora\System\Api::getAuthenticatedUser();
-		if ($oUser instanceof \Aurora\Modules\Core\Classes\User) {
+		if ($oUser instanceof User) {
 			$aList = $this->GetIpAllowlist();
 			$aList[$IP] = ['Comment' => $Comment];
-			$oUser->{self::GetName() . '::IPAllowList'} = \json_encode($aList);
-			$mResult = $oUser->saveAttribute(self::GetName() . '::IPAllowList');
+			$oUser->setExtendedProp(self::GetName() . '::IPAllowList', \json_encode($aList));
+			$mResult = $oUser->save();
 		}
 
 		return $mResult;
@@ -122,12 +123,12 @@ class Module extends \Aurora\System\Module\AbstractModule
 
 		$mResult = false;
 		$oUser = \Aurora\System\Api::getAuthenticatedUser();
-		if ($oUser instanceof \Aurora\Modules\Core\Classes\User) {
+		if ($oUser instanceof User) {
 			$aList = $this->GetIpAllowlist();
 			if (isset($aList[$IP])) {
 				unset($aList[$IP]);
-				$oUser->{self::GetName() . '::IPAllowList'} = \json_encode($aList);
-				$mResult = $oUser->saveAttribute(self::GetName() . '::IPAllowList');
+				$oUser->setExtendedProp(self::GetName() . '::IPAllowList', \json_encode($aList));
+				$mResult = $oUser->save();
 			}
 		}
 		return $mResult;
