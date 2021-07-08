@@ -74,7 +74,7 @@ CIPAllowListSettingsFormView.prototype.addIpToAllowlist = function ()
 CIPAllowListSettingsFormView.prototype.askRemoveIp = function (sIp)
 {
 	var
-		sConfirm = sIp === this.sCurrentIp
+		sConfirm = (sIp === this.sCurrentIp && this.ipAllowlist().length > 1)
 			? TextUtils.i18n('%MODULENAME%/CONFIRM_REMOVE_CURRENT_IP')
 			: TextUtils.i18n('%MODULENAME%/CONFIRM_REMOVE_IP'),
 		sHeading = TextUtils.i18n('%MODULENAME%/CONFIRM_HEADING_REMOVE_IP', {
