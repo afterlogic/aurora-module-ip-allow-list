@@ -8,14 +8,12 @@
 				<div class="row">
 					<span class="label required" data-bind="i18n: {'key': '%MODULENAME%/LABEL_IP'}"></span>
 					<input class="value input" type="text" spellcheck="false" maxlength="255"
-							data-bind="value: ip, hasFocus: ipFocus, valueUpdate: 'afterkeydown',
-							onEnter: validateAndAddIp" />
+							data-bind="value: ip, hasFocus: ipFocus" />
 				</div>
 				<div class="row">
 					<span class="label" data-bind="i18n: {'key': '%MODULENAME%/LABEL_COMMENT'}"></span>
 					<input class="value input" type="text" spellcheck="false" maxlength="255"
-							data-bind="value: comment, valueUpdate: 'afterkeydown',
-							onEnter: validateAndAddIp" />
+							data-bind="value: comment" />
 				</div>
 			</div>
 			<div class="buttons">
