@@ -13,7 +13,7 @@
               </q-item-label>
             </div>
           </div>
-          <div class="row q-mt-md" v-if="twoFactorAuthEnabled">
+          <div class="row q-mt-md" v-if="ipAllowlistEnabled">
             <div class="col-8">
               <q-btn unelevated no-caps no-wrap dense class="q-px-xs" :ripple="false" color="primary"
                      :label="$t('IPALLOWLIST.ACTION_DISABLE_IP_ALLOWLIST')" @click="confirmIpAllowlist = true"/>
@@ -64,7 +64,7 @@ export default {
   },
   computed: {
     inscriptionIpAllowlist () {
-      if (this.twoFactorAuthEnabled) {
+      if (this.ipAllowlistEnabled) {
         return this.$tc('IPALLOWLIST.INFO_IP_ALLOWLIST_ENABLED_FOR_USER', this.user?.publicId, { USER: this.user?.publicId })
       } else {
         return this.$tc('IPALLOWLIST.INFO_IP_ALLOWLIST_DISABLED_FOR_USER', this.user?.publicId, { USER: this.user?.publicId })
@@ -80,7 +80,7 @@ export default {
     this.parseRoute()
   },
   methods: {
-    parseRoute () {
+    parseRoute() {
       const userId = typesUtils.pPositiveInt(this.$route?.params?.id)
       if (this.user?.id !== userId) {
         this.user = {
@@ -89,20 +89,20 @@ export default {
         this.populate()
       }
     },
-      populate () {
-        this.loading = true
-        const currentTenantId = this.$store.getters['tenants/getCurrentTenantId']
-        cache.getUser(currentTenantId, this.user.id).then(({ user, userId }) => {
-          if (userId === this.user.id) {
-            this.loading = false
-            if (user && _.isFunction(user?.getData)) {
-              this.user = user
-              this.getUserSettings()
-            } else {
-              this.$emit('no-user-found')
-            }
+    populate() {
+      this.loading = true
+      const currentTenantId = this.$store.getters['tenants/getCurrentTenantId']
+      cache.getUser(currentTenantId, this.user.id).then(({user, userId}) => {
+        if (userId === this.user.id) {
+          this.loading = false
+          if (user && _.isFunction(user?.getData)) {
+            this.user = user
+            this.getUserSettings()
+          } else {
+            this.$emit('no-user-found')
           }
-        })
+        }
+      })
     },
     disableIpAllowlist () {
       const parameters = {
