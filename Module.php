@@ -7,6 +7,7 @@
 
 namespace Aurora\Modules\IPAllowList;
 
+use Aurora\Api;
 use Aurora\System\Exceptions\ApiException;
 
 /**
@@ -32,6 +33,7 @@ class Module extends \Aurora\System\Module\AbstractModule
 		);
 
 		$this->subscribeEvent('Core::Login::before', array($this, 'onBeforeLogin'));
+		$this->subscribeEvent('Core::Authenticate::after', array($this, 'onAfterAuthenticate'), 90);
 		$this->subscribeEvent('System::RunEntry::before', [$this, 'onBeforeRunEntry'], 100);
 	}
 
@@ -188,6 +190,20 @@ class Module extends \Aurora\System\Module\AbstractModule
 					$this->checkIpAddress($oUser);
 					\Aurora\Api::skipCheckUserRole(false);
 				}
+			}
+		}
+	}
+
+	public function onAfterAuthenticate($aArgs, $mResult)
+	{
+		if ($mResult && is_array($mResult) && isset($mResult['token']))
+		{
+			$oUser = \Aurora\System\Api::getUserById((int) $mResult['id']);
+			if ($oUser instanceof \Aurora\Modules\Core\Classes\User)
+			{
+				Api::skipCheckUserRole(true);
+				$this->checkIpAddress($oUser);
+				Api::skipCheckUserRole(false);
 			}
 		}
 	}
