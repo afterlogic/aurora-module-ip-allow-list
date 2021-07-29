@@ -15,11 +15,13 @@ namespace Aurora\Modules\IPAllowList\Enums;
 class ErrorCodes
 {
 	const IpIsNotAllowed = 1002;
+	const IpIsNotValid = 1003;
 
 	/**
 	 * @var array
 	 */
 	protected $aConsts = [
-		'IpIsNotAllowed' => self::IpIsNotAllowed
+		'IpIsNotAllowed' => self::IpIsNotAllowed,
+		'IpIsNotValid' => self::IpIsNotValid
 	];
 }

@@ -23,6 +23,7 @@ class Module extends \Aurora\System\Module\AbstractModule
 	{
 		$this->aErrors = [
 			Enums\ErrorCodes::IpIsNotAllowed => $this->i18N('ERROR_IP_IS_NOT_ALLOWED'),
+			Enums\ErrorCodes::IpIsNotValid => $this->i18N('ERROR_IP_NOT_VALID'),
 		];
 
 		$this->extendObject(\Aurora\Modules\Core\Classes\User::class, [
@@ -103,6 +104,13 @@ class Module extends \Aurora\System\Module\AbstractModule
 	public function AddIpToAllowlist($IP, $Comment)
 	{
 		\Aurora\System\Api::checkUserRoleIsAtLeast(\Aurora\System\Enums\UserRole::NormalUser);
+		
+		$isValid = filter_var($IP, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4);
+		// $isValid can be evaluated as boolean, as it's FALSE if validation fails.
+		if (!$isValid)
+		{
+			throw new ApiException(Enums\ErrorCodes::IpIsNotValid, null, '', [], $this);
+		}
 
 		$mResult = false;
 		$oUser = \Aurora\System\Api::getAuthenticatedUser();
