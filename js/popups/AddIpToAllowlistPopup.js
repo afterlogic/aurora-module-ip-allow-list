@@ -5,6 +5,7 @@ var
 	ko = require('knockout'),
 
 	TextUtils = require('%PathToCoreWebclientModule%/js/utils/Text.js'),
+	TypesUtils = require('%PathToCoreWebclientModule%/js/utils/Types.js'),
 
 	Ajax = require('%PathToCoreWebclientModule%/js/Ajax.js'),
 	Api = require('%PathToCoreWebclientModule%/js/Api.js'),
@@ -43,37 +44,68 @@ CAddIpToAllowlistPopup.prototype.onOpen = function (aAllowedIpAddresses, fCallba
 	this.comment('');
 };
 
-CAddIpToAllowlistPopup.prototype.validateAndAddIp = function ()
+CAddIpToAllowlistPopup.prototype.isIpValid = function (sIp)
 {
-	if (this.ip() === '')
+	if (sIp === '')
 	{
 		Screens.showError(TextUtils.i18n('%MODULENAME%/ERROR_IP_EMPTY'));
 		this.ipFocus(true);
+		return false;
 	}
 	else
 	{
-		if (this.ip() !== Settings.CurrentIP && this.aAllowedIpAddresses.indexOf(Settings.CurrentIP) === -1)
+		var bIpIsValid = false;
+		var aIpParts = sIp.split('.');
+		if (aIpParts.length === 4)
+		{
+			var bAllPartsValid = true;
+			_.each(aIpParts, function (sIpPart){
+				var iIpPart = TypesUtils.pInt(sIpPart);
+				if (sIpPart === '' || sIpPart !== iIpPart.toString() || iIpPart < 0 || iIpPart > 255)
+				{
+					bAllPartsValid = false;
+				}
+			});
+			bIpIsValid = bAllPartsValid;
+		}
+
+		if (!bIpIsValid)
+		{
+			Screens.showError(TextUtils.i18n('%MODULENAME%/ERROR_IP_NOT_VALID'));
+			this.ipFocus(true);
+			return false;
+		}
+	}
+	return true;
+};
+
+CAddIpToAllowlistPopup.prototype.validateAndAddIp = function ()
+{
+	var sIp = $.trim(this.ip());
+	if (this.isIpValid(sIp))
+	{
+		if (sIp !== Settings.CurrentIP && this.aAllowedIpAddresses.indexOf(Settings.CurrentIP) === -1)
 		{
 			var sConfirm = TextUtils.i18n('%MODULENAME%/CONFIRM_NOT_CURRENT_IP', { 'CURRENTIP': Settings.CurrentIP });
 			Popups.showPopup(ConfirmPopup, [sConfirm, _.bind(function (bProceed) {
 				if (bProceed)
 				{
-					this.addIp();
+					this.addIp(sIp);
 				}
 			}, this), '', TextUtils.i18n('%MODULENAME%/ACTION_PROCEED')]);
 		}
 		else
 		{
-			this.addIp();
+			this.addIp(sIp);
 		}
 	}
 };
 
-CAddIpToAllowlistPopup.prototype.addIp = function ()
+CAddIpToAllowlistPopup.prototype.addIp = function (sIp)
 {
 	var oParameters = {
-		'IP': this.ip(),
-		'Comment': this.comment()
+		'IP': sIp,
+		'Comment': $.trim(this.comment())
 	};
 	this.inProgress(true);
 	Ajax.send('%ModuleName%', 'AddIpToAllowlist', oParameters, this.onAddIpToAllowlistResponse, this);
