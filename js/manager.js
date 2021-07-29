@@ -13,6 +13,16 @@ var
 	Settings = require('modules/%ModuleName%/js/Settings.js')
 ;
 
+function _logoutIfIpNoLongerAllowed () {
+	App.subscribeEvent('ReceiveAjaxResponse::after', _.bind(function (oParams) {
+		var oResponse = TypesUtils.pObject(oParams.Response);
+		if (oResponse.Module === '%ModuleName%' && oResponse.ErrorCode === 1002)
+		{
+			App.logout();
+		}
+	}, this));
+}
+
 module.exports = function (oAppData) {
 	Settings.init(oAppData);
 
@@ -49,13 +59,20 @@ module.exports = function (oAppData) {
 					]);
 				}
 
-				App.subscribeEvent('ReceiveAjaxResponse::after', _.bind(function (oParams) {
-					var oResponse = TypesUtils.pObject(oParams.Response);
-					if (oResponse.Module === '%ModuleName%' && oResponse.ErrorCode === 1002)
-					{
-						App.logout();
-					}
-				}, this));
+				_logoutIfIpNoLongerAllowed();
+			}
+		};
+	}
+	else if (App.isUserNormalOrTenant() && App.isMobile())
+	{
+		return {
+			/**
+			 * Runs before application start. Subscribes to the event before post displaying.
+			 * 
+			 * @param {Object} ModulesManager
+			 */
+			start: function (ModulesManager) {
+				_logoutIfIpNoLongerAllowed();
 			}
 		};
 	}
