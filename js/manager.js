@@ -4,6 +4,7 @@ var
 	_ = require('underscore'),
 
 	TextUtils = require('%PathToCoreWebclientModule%/js/utils/Text.js'),
+	TypesUtils = require('%PathToCoreWebclientModule%/js/utils/Types.js'),
 	Utils = require('%PathToCoreWebclientModule%/js/utils/Common.js'),
 	
 	Ajax = require('%PathToCoreWebclientModule%/js/Ajax.js'),
@@ -47,6 +48,14 @@ module.exports = function (oAppData) {
 						TextUtils.i18n('%MODULENAME%/LABEL_SETTINGS_TAB')
 					]);
 				}
+
+				App.subscribeEvent('ReceiveAjaxResponse::after', _.bind(function (oParams) {
+					var oResponse = TypesUtils.pObject(oParams.Response);
+					if (oResponse.Module === '%ModuleName%' && oResponse.ErrorCode === 1002)
+					{
+						App.logout();
+					}
+				}, this));
 			}
 		};
 	}
