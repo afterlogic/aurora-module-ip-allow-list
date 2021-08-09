@@ -59,7 +59,6 @@ export default {
       saving: false,
       ipAllowlistEnabled: false,
       confirmIpAllowlist: false,
-      twoFactorAuthEnabled: false,
     }
   },
   computed: {
@@ -117,13 +116,13 @@ export default {
         this.confirmIpAllowlist = false
         if (result) {
           this.populate()
-          notification.showReport(this.$tc('TWOFACTORAUTH.REPORT_DISABLE_USER_IP_ALLOWLIST', this.user.publicId, { USER: this.user.publicId }))
+          notification.showReport(this.$tc('IPALLOWLIST.REPORT_DISABLE_USER_IP_ALLOWLIST', this.user.publicId, { USER: this.user.publicId }))
         } else {
-          notification.showError(this.$tc('TWOFACTORAUTH.ERROR_DISABLE_USER_IP_ALLOWLIST', this.user.publicId, { USER: this.user.publicId }))
+          notification.showError(this.$tc('IPALLOWLIST.ERROR_DISABLE_USER_IP_ALLOWLIST', this.user.publicId, { USER: this.user.publicId }))
         }
       }, response => {
         this.confirmIpAllowlist = false
-        notification.showError(errors.getTextFromResponse(response, this.$tc('TWOFACTORAUTH.ERROR_DISABLE_USER_IP_ALLOWLIST', this.user.publicId, { USER: this.user.publicId })))
+        notification.showError(errors.getTextFromResponse(response, this.$tc('IPALLOWLIST.ERROR_DISABLE_USER_IP_ALLOWLIST', this.user.publicId, { USER: this.user.publicId })))
       })
     },
     getUserSettings () {
