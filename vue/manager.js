@@ -1,23 +1,22 @@
+import IpAllowListAdminSettingsPerUser from './components/IpAllowListAdminSettingsPerUser'
+
 export default {
-    moduleName: 'IPAllowList',
+  moduleName: 'IPAllowList',
 
-    requiredModules: ['IPAllowList'],
+  requiredModules: [],
 
-    getAdminUserTabs () {
-        return [
-            {
-                tabName: 'ip-allowlist',
-                title: 'IPALLOWLIST.LABEL_SETTINGS_TAB',
-                paths: [
-                    'id/:id/ip-allowlist',
-                    'search/:search/id/:id/ip-allowlist',
-                    'page/:page/id/:id/ip-allowlist',
-                    'search/:search/page/:page/id/:id/ip-allowlist',
-                ],
-                component () {
-                    return import('./components/IpAllowListAdminSettingsPerUser')
-                },
-            },
-        ]
-    },
+  getAdminUserTabs() {
+    return [
+      {
+        tabName: 'ip-allowlist',
+        tabTitle: 'IPALLOWLIST.LABEL_SETTINGS_TAB',
+        tabRouteChildren: [
+          { path: 'id/:id/ip-allowlist', component: IpAllowListAdminSettingsPerUser },
+          { path: 'search/:search/id/:id/ip-allowlist', component: IpAllowListAdminSettingsPerUser },
+          { path: 'page/:page/id/:id/ip-allowlist', component: IpAllowListAdminSettingsPerUser },
+          { path: 'search/:search/page/:page/id/:id/ip-allowlist', component: IpAllowListAdminSettingsPerUser },
+        ],
+      },
+    ]
+  },
 }
