@@ -1,12 +1,8 @@
 'use strict';
 
 var
-	_ = require('underscore'),
-
 	TextUtils = require('%PathToCoreWebclientModule%/js/utils/Text.js'),
-	Utils = require('%PathToCoreWebclientModule%/js/utils/Common.js'),
 	
-	Ajax = require('%PathToCoreWebclientModule%/js/Ajax.js'),
 	App = require('%PathToCoreWebclientModule%/js/App.js'),
 	
 	Settings = require('modules/%ModuleName%/js/Settings.js')
@@ -47,31 +43,6 @@ module.exports = function (oAppData) {
 						TextUtils.i18n('%MODULENAME%/LABEL_SETTINGS_TAB')
 					]);
 				}
-			}
-		};
-	}
-	else if (App.getUserRole() === Enums.UserRole.SuperAdmin)
-	{
-		return {
-			/**
-			 * Runs before application start. Subscribes to the event before post displaying.
-			 * 
-			 * @param {Object} ModulesManager
-			 */
-			start: function (ModulesManager) {
-				ModulesManager.run('AdminPanelWebclient', 'registerAdminPanelTab', [
-					function(resolve) {
-						require.ensure(
-							['modules/%ModuleName%/js/views/IPAllowListAdminSettingsFormView.js'],
-							function() {
-								resolve(require('modules/%ModuleName%/js/views/IPAllowListAdminSettingsFormView.js'));
-							},
-							'admin-bundle'
-						);
-					},
-					'ip-allow-list',
-					TextUtils.i18n('%MODULENAME%/LABEL_SETTINGS_TAB')
-				]);
 			}
 		};
 	}
