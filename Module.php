@@ -26,11 +26,6 @@ class Module extends \Aurora\System\Module\AbstractModule
 			Enums\ErrorCodes::IpIsNotAllowed => $this->i18N('ERROR_IP_IS_NOT_ALLOWED'),
 		];
 
-		$this->extendObject(\Aurora\Modules\Core\Classes\User::class, [
-				'IPAllowList' => ['string', '', false],
-			]
-		);
-
 		$this->subscribeEvent('Core::Login::before', array($this, 'onBeforeLogin'));
 		$this->subscribeEvent('System::RunEntry::before', [$this, 'onBeforeRunEntry'], 100);
 	}
