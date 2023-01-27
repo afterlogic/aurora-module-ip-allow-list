@@ -19,164 +19,152 @@ use Aurora\System\Exceptions\ApiException;
  */
 class Module extends \Aurora\System\Module\AbstractModule
 {
+    public function init()
+    {
+        $this->aErrors = [
+            Enums\ErrorCodes::IpIsNotAllowed => $this->i18N('ERROR_IP_IS_NOT_ALLOWED'),
+        ];
 
-	public function init()
-	{
-		$this->aErrors = [
-			Enums\ErrorCodes::IpIsNotAllowed => $this->i18N('ERROR_IP_IS_NOT_ALLOWED'),
-		];
+        $this->subscribeEvent('Core::Login::before', array($this, 'onBeforeLogin'));
+        $this->subscribeEvent('System::RunEntry::before', [$this, 'onBeforeRunEntry'], 100);
+    }
 
-		$this->subscribeEvent('Core::Login::before', array($this, 'onBeforeLogin'));
-		$this->subscribeEvent('System::RunEntry::before', [$this, 'onBeforeRunEntry'], 100);
-	}
+    public function GetSettings()
+    {
+        \Aurora\System\Api::checkUserRoleIsAtLeast(\Aurora\System\Enums\UserRole::Anonymous);
 
-	public function GetSettings()
-	{
-		\Aurora\System\Api::checkUserRoleIsAtLeast(\Aurora\System\Enums\UserRole::Anonymous);
+        return [
+            'CurrentIP' => $this->_getCurrentIp()
+        ];
+    }
 
-		return [
-			'CurrentIP' => $this->_getCurrentIp()
-		];
-	}
+    /**
+     * Obtains user settings. Method is allowed for superadmin only.
+     *
+     * @param int $UserId
+     * @return array|null
+     */
+    public function GetUserSettings($UserId)
+    {
+        \Aurora\System\Api::checkUserRoleIsAtLeast(\Aurora\System\Enums\UserRole::SuperAdmin);
 
-	/**
-	 * Obtains user settings. Method is allowed for superadmin only.
-	 *
-	 * @param int $UserId
-	 * @return array|null
-	 */
-	public function GetUserSettings($UserId)
-	{
-		\Aurora\System\Api::checkUserRoleIsAtLeast(\Aurora\System\Enums\UserRole::SuperAdmin);
+        $oUser = \Aurora\System\Api::getUserById($UserId);
+        if ($oUser instanceof User && $oUser->isNormalOrTenant()) {
+            $aList = $this->GetIpAllowlist($oUser);
+            $bIpAllowlistEnabled = (count($aList) > 0);
+            return [
+                'IpAllowlistEnabled' => $bIpAllowlistEnabled
+            ];
+        }
 
-		$oUser = \Aurora\System\Api::getUserById($UserId);
-		if ($oUser instanceof User && $oUser->isNormalOrTenant())
-		{
-			$aList = $this->GetIpAllowlist($oUser);
-			$bIpAllowlistEnabled = (count($aList) > 0);
-			return [
-				'IpAllowlistEnabled' => $bIpAllowlistEnabled
-			];
-		}
+        return null;
+    }
 
-		return null;
-	}
+    public function DisableUserIpAllowlist($UserId)
+    {
+        \Aurora\System\Api::checkUserRoleIsAtLeast(\Aurora\System\Enums\UserRole::SuperAdmin);
 
-	public function DisableUserIpAllowlist($UserId)
-	{
-		\Aurora\System\Api::checkUserRoleIsAtLeast(\Aurora\System\Enums\UserRole::SuperAdmin);
+        $mResult = false;
+        $oUser = \Aurora\System\Api::getUserById($UserId);
+        if ($oUser instanceof User && $oUser->isNormalOrTenant()) {
+            $oUser->setExtendedProp(self::GetName() . '::IPAllowList', \json_encode([]));
+            $mResult = $oUser->save();
+        }
+        return $mResult;
+    }
 
-		$mResult = false;
-		$oUser = \Aurora\System\Api::getUserById($UserId);
-		if ($oUser instanceof User && $oUser->isNormalOrTenant())
-		{
-			$oUser->setExtendedProp(self::GetName() . '::IPAllowList', \json_encode([]));
-			$mResult = $oUser->save();
-		}
-		return $mResult;
-	}
+    public function GetIpAllowlist($User = null)
+    {
+        if ($User === null) {
+            $User = \Aurora\System\Api::getAuthenticatedUser();
+        } else {
+            \Aurora\System\Api::checkUserRoleIsAtLeast(\Aurora\System\Enums\UserRole::SuperAdmin);
+        }
+        $aList = [];
+        if ($User instanceof User) {
+            if (!empty($User->{self::GetName() . '::IPAllowList'})) {
+                $aList = \json_decode($User->{self::GetName() . '::IPAllowList'}, true);
+            }
+        }
 
-	public function GetIpAllowlist($User = null)
-	{
-		if ($User === null)
-		{
-			$User = \Aurora\System\Api::getAuthenticatedUser();
-		}
-		else
-		{
-			\Aurora\System\Api::checkUserRoleIsAtLeast(\Aurora\System\Enums\UserRole::SuperAdmin);
-		}
-		$aList = [];
-		if ($User instanceof User) {
-			if (!empty($User->{self::GetName() . '::IPAllowList'})) {
-				$aList = \json_decode($User->{self::GetName() . '::IPAllowList'}, true);
-			}
-		}
+        return $aList;
+    }
 
-		return $aList;
-	}
+    public function AddIpToAllowlist($IP, $Comment)
+    {
+        \Aurora\System\Api::checkUserRoleIsAtLeast(\Aurora\System\Enums\UserRole::NormalUser);
 
-	public function AddIpToAllowlist($IP, $Comment)
-	{
-		\Aurora\System\Api::checkUserRoleIsAtLeast(\Aurora\System\Enums\UserRole::NormalUser);
+        $mResult = false;
+        $oUser = \Aurora\System\Api::getAuthenticatedUser();
+        if ($oUser instanceof User) {
+            $aList = $this->GetIpAllowlist();
+            $aList[$IP] = ['Comment' => $Comment];
+            $oUser->setExtendedProp(self::GetName() . '::IPAllowList', \json_encode($aList));
+            $mResult = $oUser->save();
+        }
 
-		$mResult = false;
-		$oUser = \Aurora\System\Api::getAuthenticatedUser();
-		if ($oUser instanceof User) {
-			$aList = $this->GetIpAllowlist();
-			$aList[$IP] = ['Comment' => $Comment];
-			$oUser->setExtendedProp(self::GetName() . '::IPAllowList', \json_encode($aList));
-			$mResult = $oUser->save();
-		}
+        return $mResult;
+    }
 
-		return $mResult;
-	}
+    public function RemoveIpFromAllowlist($IP)
+    {
+        \Aurora\System\Api::checkUserRoleIsAtLeast(\Aurora\System\Enums\UserRole::NormalUser);
 
-	public function RemoveIpFromAllowlist($IP)
-	{
-		\Aurora\System\Api::checkUserRoleIsAtLeast(\Aurora\System\Enums\UserRole::NormalUser);
+        $mResult = false;
+        $oUser = \Aurora\System\Api::getAuthenticatedUser();
+        if ($oUser instanceof User) {
+            $aList = $this->GetIpAllowlist();
+            if (isset($aList[$IP])) {
+                unset($aList[$IP]);
+                $oUser->setExtendedProp(self::GetName() . '::IPAllowList', \json_encode($aList));
+                $mResult = $oUser->save();
+            }
+        }
+        return $mResult;
+    }
 
-		$mResult = false;
-		$oUser = \Aurora\System\Api::getAuthenticatedUser();
-		if ($oUser instanceof User) {
-			$aList = $this->GetIpAllowlist();
-			if (isset($aList[$IP])) {
-				unset($aList[$IP]);
-				$oUser->setExtendedProp(self::GetName() . '::IPAllowList', \json_encode($aList));
-				$mResult = $oUser->save();
-			}
-		}
-		return $mResult;
-	}
+    protected function _getCurrentIp()
+    {
+        if (!empty($_SERVER['HTTP_CLIENT_IP'])) {
+            return $_SERVER['HTTP_CLIENT_IP'];
+        } elseif (!empty($_SERVER['HTTP_X_FORWARDED_FOR'])) {
+            return $_SERVER['HTTP_X_FORWARDED_FOR'];
+        } else {
+            return $_SERVER['REMOTE_ADDR'];
+        }
+    }
 
-	protected function _getCurrentIp()
-	{
-		if (!empty($_SERVER['HTTP_CLIENT_IP']))
-		{
-			return $_SERVER['HTTP_CLIENT_IP'];
-		}
-		elseif (!empty($_SERVER['HTTP_X_FORWARDED_FOR']))
-		{
-			return $_SERVER['HTTP_X_FORWARDED_FOR'];
-		}
-		else
-		{
-			return $_SERVER['REMOTE_ADDR'];
-		}
-	}
+    protected function checkIpAddress($oUser = null)
+    {
+        $sIpAddress = $this->_getCurrentIp();
+        $aList = $this->GetIpAllowlist($oUser);
+        if (is_array($aList) && count($aList) > 0) {
+            if (!in_array($sIpAddress, array_keys($aList))) {
+                throw new ApiException(Enums\ErrorCodes::IpIsNotAllowed, null, '', [], $this);
+            }
+        }
+    }
 
-	protected function checkIpAddress($oUser = null)
-	{
-		$sIpAddress = $this->_getCurrentIp();
-		$aList = $this->GetIpAllowlist($oUser);
-		if (is_array($aList) && count($aList) > 0) {
-			if (!in_array($sIpAddress, array_keys($aList))) {
-				throw new ApiException(Enums\ErrorCodes::IpIsNotAllowed, null, '', [], $this);
-			}
-		}
-	}
+    public function onBeforeRunEntry($aArgs, &$mResult)
+    {
+        $aEntries = ['api', 'download'];
+        if (isset($aArgs['EntryName']) && in_array(strtolower($aArgs['EntryName']), $aEntries)) {
+            $this->checkIpAddress();
+        }
+    }
 
-	public function onBeforeRunEntry($aArgs, &$mResult)
-	{
-		$aEntries = ['api', 'download'];
-		if (isset($aArgs['EntryName']) && in_array(strtolower($aArgs['EntryName']), $aEntries))
-		{
-			$this->checkIpAddress();
-		}
-	}
-
-	public function onBeforeLogin($aArgs, &$mResult)
-	{
-		if (isset($aArgs['Login']) && isset($aArgs['Password'])) {
-			$aAuthData = \Aurora\Modules\Core\Module::Decorator()->Authenticate($aArgs['Login'], $aArgs['Password']);
-			if (is_array($aAuthData) && isset($aAuthData['id'])) {
-				$oUser = \Aurora\Modules\Core\Module::Decorator()->GetUserUnchecked($aAuthData['id']);
-				if ($oUser) {
-					\Aurora\Api::skipCheckUserRole(true);
-					$this->checkIpAddress($oUser);
-					\Aurora\Api::skipCheckUserRole(false);
-				}
-			}
-		}
-	}
+    public function onBeforeLogin($aArgs, &$mResult)
+    {
+        if (isset($aArgs['Login']) && isset($aArgs['Password'])) {
+            $aAuthData = \Aurora\Modules\Core\Module::Decorator()->Authenticate($aArgs['Login'], $aArgs['Password']);
+            if (is_array($aAuthData) && isset($aAuthData['id'])) {
+                $oUser = \Aurora\Modules\Core\Module::Decorator()->GetUserUnchecked($aAuthData['id']);
+                if ($oUser) {
+                    \Aurora\Api::skipCheckUserRole(true);
+                    $this->checkIpAddress($oUser);
+                    \Aurora\Api::skipCheckUserRole(false);
+                }
+            }
+        }
+    }
 }
