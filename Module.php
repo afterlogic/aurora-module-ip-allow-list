@@ -158,7 +158,7 @@ class Module extends \Aurora\System\Module\AbstractModule
         if (isset($aArgs['Login']) && isset($aArgs['Password'])) {
             $aAuthData = \Aurora\Modules\Core\Module::Decorator()->Authenticate($aArgs['Login'], $aArgs['Password']);
             if (is_array($aAuthData) && isset($aAuthData['id'])) {
-                $oUser = \Aurora\Modules\Core\Module::Decorator()->GetUserUnchecked($aAuthData['id']);
+                $oUser = \Aurora\Modules\Core\Module::Decorator()->GetUserWithoutRoleCheck($aAuthData['id']);
                 if ($oUser) {
                     \Aurora\Api::skipCheckUserRole(true);
                     $this->checkIpAddress($oUser);
