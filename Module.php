@@ -29,6 +29,15 @@ class Module extends \Aurora\System\Module\AbstractModule
         $this->subscribeEvent('System::RunEntry::before', [$this, 'onBeforeRunEntry'], 100);
     }
 
+    /**
+     *
+     * @return Module
+     */
+    public static function Decorator()
+    {
+        return parent::Decorator();
+    }
+
     public function GetSettings()
     {
         \Aurora\System\Api::checkUserRoleIsAtLeast(\Aurora\System\Enums\UserRole::Anonymous);
