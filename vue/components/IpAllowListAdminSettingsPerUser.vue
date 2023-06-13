@@ -1,6 +1,6 @@
 <template>
   <q-scroll-area class="full-height full-width">
-    <div class="q-pa-lg ">
+    <div class="q-pa-lg">
       <div class="row q-mb-md">
         <div class="col text-h5" v-t="'IPALLOWLIST.HEADING_IP_ALLOWLIST'"></div>
       </div>
@@ -15,8 +15,17 @@
           </div>
           <div class="row q-mt-md" v-if="ipAllowlistEnabled">
             <div class="col-8">
-              <q-btn unelevated no-caps no-wrap dense class="q-px-xs" :ripple="false" color="primary"
-                     :label="$t('IPALLOWLIST.ACTION_DISABLE_IP_ALLOWLIST')" @click="confirmIpAllowlist = true"/>
+              <q-btn
+                unelevated
+                no-caps
+                no-wrap
+                dense
+                class="q-px-xs"
+                :ripple="false"
+                color="primary"
+                :label="$t('IPALLOWLIST.ACTION_DISABLE_IP_ALLOWLIST')"
+                @click="confirmIpAllowlist = true"
+              />
             </div>
           </div>
         </q-card-section>
@@ -28,15 +37,31 @@
           <span v-t="'COREWEBCLIENT.CONFIRM_DISCARD_CHANGES'"></span>
         </q-card-section>
         <q-card-actions align="right">
-          <q-btn unelevated no-caps dense class="q-px-sm" :ripple="false" color="primary" @click="disableIpAllowlist"
-                 :label="$t('IPALLOWLIST.ACTION_DISABLE_IP_ALLOWLIST')"/>
-          <q-btn unelevated no-caps dense class="q-px-sm" :ripple="false" color="primary"
-                 :label="$t('COREWEBCLIENT.ACTION_CANCEL')" @click="confirmIpAllowlist = false"/>
+          <q-btn
+            unelevated
+            no-caps
+            dense
+            class="q-px-sm"
+            :ripple="false"
+            color="primary"
+            @click="disableIpAllowlist"
+            :label="$t('IPALLOWLIST.ACTION_DISABLE_IP_ALLOWLIST')"
+          />
+          <q-btn
+            unelevated
+            no-caps
+            dense
+            class="q-px-sm"
+            :ripple="false"
+            color="primary"
+            :label="$t('COREWEBCLIENT.ACTION_CANCEL')"
+            @click="confirmIpAllowlist = false"
+          />
         </q-card-actions>
       </q-card>
     </q-dialog>
-    <q-inner-loading style="justify-content: flex-start;" :showing="loading || saving">
-      <q-linear-progress query/>
+    <q-inner-loading style="justify-content: flex-start" :showing="loading || saving">
+      <q-linear-progress query />
     </q-inner-loading>
   </q-scroll-area>
 </template>
@@ -52,7 +77,7 @@ import errors from 'src/utils/errors'
 
 export default {
   name: 'IpAllowListAdminSettingsPerUser',
-  data () {
+  data() {
     return {
       user: null,
       loading: false,
@@ -62,20 +87,24 @@ export default {
     }
   },
   computed: {
-    inscriptionIpAllowlist () {
+    inscriptionIpAllowlist() {
       if (this.ipAllowlistEnabled) {
-        return this.$tc('IPALLOWLIST.INFO_IP_ALLOWLIST_ENABLED_FOR_USER', this.user?.publicId, { USER: this.user?.publicId })
+        return this.$tc('IPALLOWLIST.INFO_IP_ALLOWLIST_ENABLED_FOR_USER', this.user?.publicId, {
+          USER: this.user?.publicId,
+        })
       } else {
-        return this.$tc('IPALLOWLIST.INFO_IP_ALLOWLIST_DISABLED_FOR_USER', this.user?.publicId, { USER: this.user?.publicId })
+        return this.$tc('IPALLOWLIST.INFO_IP_ALLOWLIST_DISABLED_FOR_USER', this.user?.publicId, {
+          USER: this.user?.publicId,
+        })
       }
-    }
+    },
   },
   watch: {
-    $route (to, from) {
+    $route(to, from) {
       this.parseRoute()
     },
   },
-  mounted () {
+  mounted() {
     this.parseRoute()
   },
   methods: {
@@ -91,7 +120,7 @@ export default {
     populate() {
       this.loading = true
       const currentTenantId = this.$store.getters['tenants/getCurrentTenantId']
-      cache.getUser(currentTenantId, this.user.id).then(({user, userId}) => {
+      cache.getUser(currentTenantId, this.user.id).then(({ user, userId }) => {
         if (userId === this.user.id) {
           this.loading = false
           if (user && _.isFunction(user?.getData)) {
@@ -103,52 +132,75 @@ export default {
         }
       })
     },
-    disableIpAllowlist () {
+    disableIpAllowlist() {
       const parameters = {
         UserId: this.user.id,
         TenantId: this.user.tenantId,
       }
-      webApi.sendRequest({
-        moduleName: 'IPAllowList',
-        methodName: 'DisableUserIpAllowlist',
-        parameters
-      }).then(result => {
-        this.confirmIpAllowlist = false
-        if (result) {
-          this.populate()
-          notification.showReport(this.$tc('IPALLOWLIST.REPORT_DISABLE_USER_IP_ALLOWLIST', this.user.publicId, { USER: this.user.publicId }))
-        } else {
-          notification.showError(this.$tc('IPALLOWLIST.ERROR_DISABLE_USER_IP_ALLOWLIST', this.user.publicId, { USER: this.user.publicId }))
-        }
-      }, response => {
-        this.confirmIpAllowlist = false
-        notification.showError(errors.getTextFromResponse(response, this.$tc('IPALLOWLIST.ERROR_DISABLE_USER_IP_ALLOWLIST', this.user.publicId, { USER: this.user.publicId })))
-      })
+      webApi
+        .sendRequest({
+          moduleName: 'IPAllowList',
+          methodName: 'DisableUserIpAllowlist',
+          parameters,
+        })
+        .then(
+          (result) => {
+            this.confirmIpAllowlist = false
+            if (result) {
+              this.populate()
+              notification.showReport(
+                this.$tc('IPALLOWLIST.REPORT_DISABLE_USER_IP_ALLOWLIST', this.user.publicId, {
+                  USER: this.user.publicId,
+                })
+              )
+            } else {
+              notification.showError(
+                this.$tc('IPALLOWLIST.ERROR_DISABLE_USER_IP_ALLOWLIST', this.user.publicId, {
+                  USER: this.user.publicId,
+                })
+              )
+            }
+          },
+          (response) => {
+            this.confirmIpAllowlist = false
+            notification.showError(
+              errors.getTextFromResponse(
+                response,
+                this.$tc('IPALLOWLIST.ERROR_DISABLE_USER_IP_ALLOWLIST', this.user.publicId, {
+                  USER: this.user.publicId,
+                })
+              )
+            )
+          }
+        )
     },
-    getUserSettings () {
+    getUserSettings() {
       this.loading = true
       const parameters = {
         UserId: this.user.id,
         TenantId: this.user.tenantId,
       }
-      webApi.sendRequest({
-        moduleName: 'IPAllowList',
-        methodName: 'GetUserSettings',
-        parameters
-      }).then(result => {
-        this.loading = false
-        if (result) {
-          this.ipAllowlistEnabled = result?.IpAllowlistEnabled
-        }
-      }, response => {
-        this.loading = false
-        notification.showError(errors.getTextFromResponse(response))
-      })
-    }
-  }
+      webApi
+        .sendRequest({
+          moduleName: 'IPAllowList',
+          methodName: 'GetUserSettings',
+          parameters,
+        })
+        .then(
+          (result) => {
+            this.loading = false
+            if (result) {
+              this.ipAllowlistEnabled = result?.IpAllowlistEnabled
+            }
+          },
+          (response) => {
+            this.loading = false
+            notification.showError(errors.getTextFromResponse(response))
+          }
+        )
+    },
+  },
 }
 </script>
 
-<style scoped>
-
-</style>
+<style scoped></style>
