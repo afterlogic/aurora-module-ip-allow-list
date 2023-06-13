@@ -77,6 +77,7 @@ import errors from 'src/utils/errors'
 
 export default {
   name: 'IpAllowListAdminSettingsPerUser',
+
   data() {
     return {
       user: null,
@@ -86,27 +87,27 @@ export default {
       confirmIpAllowlist: false,
     }
   },
+
   computed: {
     inscriptionIpAllowlist() {
       if (this.ipAllowlistEnabled) {
-        return this.$tc('IPALLOWLIST.INFO_IP_ALLOWLIST_ENABLED_FOR_USER', this.user?.publicId, {
-          USER: this.user?.publicId,
-        })
+        return this.$t('IPALLOWLIST.INFO_IP_ALLOWLIST_ENABLED_FOR_USER', { USER: this.user?.publicId })
       } else {
-        return this.$tc('IPALLOWLIST.INFO_IP_ALLOWLIST_DISABLED_FOR_USER', this.user?.publicId, {
-          USER: this.user?.publicId,
-        })
+        return this.$t('IPALLOWLIST.INFO_IP_ALLOWLIST_DISABLED_FOR_USER', { USER: this.user?.publicId })
       }
     },
   },
+
   watch: {
     $route(to, from) {
       this.parseRoute()
     },
   },
+
   mounted() {
     this.parseRoute()
   },
+
   methods: {
     parseRoute() {
       const userId = typesUtils.pPositiveInt(this.$route?.params?.id)
@@ -132,6 +133,7 @@ export default {
         }
       })
     },
+
     disableIpAllowlist() {
       const parameters = {
         UserId: this.user.id,
@@ -149,15 +151,11 @@ export default {
             if (result) {
               this.populate()
               notification.showReport(
-                this.$tc('IPALLOWLIST.REPORT_DISABLE_USER_IP_ALLOWLIST', this.user.publicId, {
-                  USER: this.user.publicId,
-                })
+                this.$t('IPALLOWLIST.REPORT_DISABLE_USER_IP_ALLOWLIST', { USER: this.user.publicId })
               )
             } else {
               notification.showError(
-                this.$tc('IPALLOWLIST.ERROR_DISABLE_USER_IP_ALLOWLIST', this.user.publicId, {
-                  USER: this.user.publicId,
-                })
+                this.$t('IPALLOWLIST.ERROR_DISABLE_USER_IP_ALLOWLIST', { USER: this.user.publicId })
               )
             }
           },
@@ -166,14 +164,13 @@ export default {
             notification.showError(
               errors.getTextFromResponse(
                 response,
-                this.$tc('IPALLOWLIST.ERROR_DISABLE_USER_IP_ALLOWLIST', this.user.publicId, {
-                  USER: this.user.publicId,
-                })
+                this.$t('IPALLOWLIST.ERROR_DISABLE_USER_IP_ALLOWLIST', { USER: this.user.publicId })
               )
             )
           }
         )
     },
+
     getUserSettings() {
       this.loading = true
       const parameters = {
