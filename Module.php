@@ -108,8 +108,8 @@ class Module extends \Aurora\System\Module\AbstractModule
         }
         $aList = [];
         if ($User instanceof User) {
-            if (!empty($User->{self::GetName() . '::IPAllowList'})) {
-                $aList = \json_decode($User->{self::GetName() . '::IPAllowList'}, true);
+            if (null !== $User->getExtendedProp(self::GetName() . '::IPAllowList')) {
+                $aList = \json_decode($User->getExtendedProp(self::GetName() . '::IPAllowList'), true);
             }
         }
 
