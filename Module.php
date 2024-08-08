@@ -166,6 +166,7 @@ class Module extends \Aurora\System\Module\AbstractModule
         $aList = $this->GetIpAllowlist($oUser);
         if (is_array($aList) && count($aList) > 0) {
             if (!in_array($sIpAddress, array_keys($aList))) {
+                \Aurora\System\Api::LogEvent('access-denied: ' . $oUser->PublicId, self::GetName());
                 throw new ApiException(Enums\ErrorCodes::IpIsNotAllowed, null, '', [], $this);
             }
         }
