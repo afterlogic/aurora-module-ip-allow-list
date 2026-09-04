@@ -187,9 +187,12 @@ class Module extends \Aurora\System\Module\AbstractModule
             if (is_array($aAuthData) && isset($aAuthData['id'])) {
                 $oUser = \Aurora\Api::getUserById($aAuthData['id']);
                 if ($oUser) {
-                    \Aurora\Api::skipCheckUserRole(true);
-                    $this->checkIpAddress($oUser);
-                    \Aurora\Api::skipCheckUserRole(false);
+                    $bPrevState = \Aurora\Api::skipCheckUserRole(true);
+                    try {
+                        $this->checkIpAddress($oUser);
+                    } finally {
+                        \Aurora\Api::skipCheckUserRole($bPrevState);
+                    }
                 }
             }
         }
